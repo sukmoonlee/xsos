@@ -3418,13 +3418,23 @@ $XSOS_INDENT_H1${c[H2]}Top thread-spawning processes:${c[0]} \n$top_threads"
 SSCHECK(){
 
   # These are used later to print the name, cpu and mem of the process owner of the socket.
-  pids=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f2)
-  cmds=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f11)
-  cpus=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f3)
-  mems=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f4)
+  if [[ -z "$1" ]] ; then
+    pids=$(ps auxwwwm 2>/dev/null | tr -d '()[]' | tr -s ' ' | cut -d' ' -f2)
+    cmds=$(ps auxwwwm 2>/dev/null | tr -d '()[]' | tr -s ' ' | cut -d' ' -f11)
+    cpus=$(ps auxwwwm 2>/dev/null | tr -d '()[]' | tr -s ' ' | cut -d' ' -f3)
+    mems=$(ps auxwwwm 2>/dev/null | tr -d '()[]' | tr -s ' ' | cut -d' ' -f4)
+    _filename="/tmp/ss_-peaonmi"
+    ss -peaonmi 2>/dev/null > "$_filename"
+  else
+    pids=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f2)
+    cmds=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f11)
+    cpus=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f3)
+    mems=$(cat $1/ps | tr -d '()[]' | tr -s ' ' | cut -d' ' -f4)
+    _filename="$1/sos_commands/networking/ss_-peaonmi"
+  fi
 
   # These fields have format "name value". Add them a ":" so they have the same format as the other fields (name: value)
-  cat "$1/sos_commands/networking/ss_-peaonmi" | sed \
+  cat "$_filename" | sed \
     -e 's/ send / send:/' \
     -e 's/ pacing_rate / pacing_rate:/' \
     -e 's/ delivered / delivered:/' \
@@ -3754,12 +3764,25 @@ SSCHECK(){
 
 FIREWALL(){
 
-  iptables_vnxL="$1/sos_commands/networking/iptables_-vnxL"
-  firewallcmd_state="$1/sos_commands/firewalld/firewall-cmd_--state"
-  nft_list_ruleset="$(echo $1/sos_commands/*/nft_list_ruleset)"
-  nft_list_ruleset=${nft_list_ruleset%% *}
-  systemctl_list_unit_files="$1/sos_commands/systemd/systemctl_list-unit-files"
-  systemctl_status_all="$1/sos_commands/systemd/systemctl_status_--all"
+  if [[ -z "$1" ]] ; then
+    iptables_vnxL="/tmp/iptables_-vnxL"
+    iptables -vnxL 2>/dev/null > "$iptables_vnxL"
+    firewallcmd_state="/tmp/firewall-cmd_--state"
+    firewall-cmd --status 2>/dev/null > "$firewallcmd_state"
+    nft_list_ruleset="$(echo $1/sos_commands/*/nft_list_ruleset)"
+    nft_list_ruleset=${nft_list_ruleset%% *}
+    systemctl_list_unit_files="/tmp/systemctl_list-unit-files"
+    systemctl list-unit-files 2>/dev/null > "$systemctl_list_unit_files"
+    systemctl_status_all="/tmp/systemctl_status_--all"
+    systemctl status --all 2>/dev/null > "$systemctl_status_all"
+  else
+    iptables_vnxL="$1/sos_commands/networking/iptables_-vnxL"
+    firewallcmd_state="$1/sos_commands/firewalld/firewall-cmd_--state"
+    nft_list_ruleset="$(echo $1/sos_commands/*/nft_list_ruleset)"
+    nft_list_ruleset=${nft_list_ruleset%% *}
+    systemctl_list_unit_files="$1/sos_commands/systemd/systemctl_list-unit-files"
+    systemctl_status_all="$1/sos_commands/systemd/systemctl_status_--all"
+  fi
 
   __retrieve_service_status(){
       grep -E -A 2 "^\* $1.service" <$systemctl_status_all | xargs echo |
