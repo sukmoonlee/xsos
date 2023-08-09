@@ -3650,7 +3650,8 @@ SSCHECK(){
 
       # If this session will be printed, then we want to have some extra info
       if (added == 1){
-        if(typeof(params["users"]) == "array"){
+        #if(typeof(params["users"]) == "array"){
+        if(isarray(params["users"])){
           for (user_n in params["users"]){
             sessions[string]["cmd"][user_n]["pid"] = params["users"][user_n]["pid"]
             sessions[string]["cmd"][user_n]["name"] = params["users"][user_n]["name"]
@@ -3714,7 +3715,9 @@ SSCHECK(){
     # Print headers + underscores
     # Columns containing numbers are right aligned for clarity
     printf(I""I""cH3)
-    for (i in _col_names){
+    #for (i in _col_names){
+    n = length(_col_names)
+    for (i = 1; i <= n; i++) {
       if (_values[1][i] + 0 == _values[1][i]){ 
         # First row has a number, we assume the same col in all rows are numbers.
         printf("%*s ", _col_widths[i], _col_names[i])
@@ -3723,7 +3726,8 @@ SSCHECK(){
       }
     }
     printf("\n"I""I)
-    for (i in _col_widths){
+    #for (i in _col_widths){
+    for (i = 1; i <= n; i++) {
       for(j=1; j<= _col_widths[i]; j++){
           printf("-")
       }
@@ -3733,9 +3737,13 @@ SSCHECK(){
     printf(c0)
 
     # Finally, print the values
-    for (i in _values){
+    #for (i in _values){
+    for (i = 1; i <= n; i++) {
+      if (_values[i][1]=="") { continue }
       printf("\n"I""I)
-      for(j in _values[i]){
+      #for(j in _values[i]){
+      nn = length(_values[i])
+      for (j = 1; j <= nn; j++) {
         if (_values[i][j] + 0 == _values[i][j]){
           # its a number, align: right
           printf("%*s ", _col_widths[j], _values[i][j])
